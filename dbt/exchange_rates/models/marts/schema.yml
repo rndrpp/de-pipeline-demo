@@ -1,0 +1,14 @@
+version: 2
+
+models:
+  - name: mart_latest_rates
+    description: "One row per day, latest exchange rate fetch wins"
+    columns:
+      - name: rate_date
+        description: "Date of the exchange rate"
+        tests:
+          - not_null
+          - unique
+      - name: jpy_rate
+        tests:
+          - not_null

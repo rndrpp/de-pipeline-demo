@@ -1,0 +1,24 @@
+version: 2
+
+models:
+  - name: stg_exchange_rates
+    description: "Cleaned and typed exchange rates from raw BigQuery table"
+    columns:
+      - name: fetched_at
+        description: "Timestamp when the rate was fetched"
+        tests:
+          - not_null
+      - name: rate_date
+        description: "Date of the exchange rate"
+        tests:
+          - not_null
+      - name: base_currency
+        description: "Base currency (always EUR from Frankfurter)"
+        tests:
+          - not_null
+      - name: jpy_rate
+        tests:
+          - not_null
+      - name: usd_rate
+        tests:
+          - not_null
