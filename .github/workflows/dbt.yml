@@ -1,0 +1,46 @@
+name: dbt CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  dbt:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Create GCP key file
+        run: echo '${{ secrets.GCP_KEY }}' > gcp-key.json
+
+      - name: Create dbt profiles
+        run: |
+          mkdir -p dbt/exchange_rates/profiles
+          cat > dbt/exchange_rates/profiles/profiles.yml << 'PROFILE'
+          exchange_rates:
+            target: dev
+            outputs:
+              dev:
+                type: bigquery
+                method: service-account
+                project: de-pipeline-demo-495506
+                dataset: exchange_rates
+                keyfile: /usr/app/../../../gcp-key.json
+                threads: 1
+                timeout_seconds: 300
+                location: asia-southeast2
+          PROFILE
+
+      - name: Run dbt
+        run: |
+          docker run --rm \
+            -v ${{ github.workspace }}/dbt/exchange_rates:/usr/app \
+            -v ${{ github.workspace }}/gcp-key.json:/gcp-key.json \
+            -e GOOGLE_APPLICATION_CREDENTIALS=/gcp-key.json \
+            --entrypoint /bin/bash \
+            ghcr.io/dbt-labs/dbt-bigquery:1.7.7 \
+            -c "cd /usr/app && dbt run --profiles-dir profiles && dbt test --profiles-dir profiles"
